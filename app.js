@@ -3,21 +3,24 @@ const express = require('express')
 const dotenv = require('dotenv')
 const morgan = require('morgan')
 const exphbs = require('express-handlebars')
+const mongoose = require('mongoose')
+const session = require('express-session')
+const MongoStore = require('connect-mongo')(session)
 const connectDB = require('./models/db')
 const passport = require('passport')
-const session = require('express-session')
 
 dotenv.config({path: '.env'});
 const app = express()
 connectDB()
 
-require('./middleware/passport')(passport)
-
 app.use(session({
     secret: 'My secret',
     resave: false,
-    saveUninitialized: false
+    saveUninitialized: false,
+    store: new MongoStore({ mongooseConnection: mongoose.connection })
 }))
+
+require('./middleware/passport')(passport)
 
 app.use(passport.initialize())
 app.use(passport.session())
